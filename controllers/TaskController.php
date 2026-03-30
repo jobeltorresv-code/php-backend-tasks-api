@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../core/Database.php';
+require_once __DIR__ . '/../models/Task.php';
 
 class TaskController {
 
@@ -8,18 +8,15 @@ class TaskController {
         header('Content-Type: application/json');
 
         try {
-            $db = Database::getInstance()->getConnection();
+            $taskModel = new Task();
+            $tasks = $taskModel->getAll();
 
-            $stmt = $db->query("SELECT 1");
-
-            echo json_encode([
-                "message" => "Conexión a DB exitosa"
-            ]);
+            echo json_encode($tasks);
 
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode([
-                "error" => "DB test failed",
+                "error" => "Failed to fetch tasks",
                 "message" => $e->getMessage()
             ]);
         }
