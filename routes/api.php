@@ -2,29 +2,20 @@
 
 require_once __DIR__ . '/../controllers/TaskController.php';
 
-$router->get('/tasks', function() {
-    $controller = new TaskController();
-    $controller->index();
-});
-$router->get('/', function () {
-    echo json_encode([
-        "message" => "API funcionando"
-    ]);
-});
-
-$router->post('/tasks', function() {
-    $controller = new TaskController();
-    $controller->store();
-});
-$requestUri = $_SERVER['REQUEST_URI'];
+$requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $requestMethod = $_SERVER['REQUEST_METHOD'];
-
-require_once __DIR__ . '/../controllers/TaskController.php';
 
 $controller = new TaskController();
 
+// GET /
+if ($requestMethod === 'GET' && $requestUri === '/') {
+    echo json_encode([
+        "message" => "API funcionando"
+    ]);
+}
+
 // GET /tasks
-if ($requestMethod === 'GET' && $requestUri === '/tasks') {
+elseif ($requestMethod === 'GET' && $requestUri === '/tasks') {
     $controller->index();
 }
 
@@ -35,11 +26,15 @@ elseif ($requestMethod === 'POST' && $requestUri === '/tasks') {
 
 // GET /tasks/{id}
 elseif ($requestMethod === 'GET' && preg_match('#^/tasks/(\d+)$#', $requestUri, $matches)) {
-    $id = $matches[1];
-    $controller->show($id);
+    $controller->show($matches[1]);
 }
 
-// 404 fallback
+// PUT /tasks/{id}
+elseif ($requestMethod === 'PUT' && preg_match('#^/tasks/(\d+)$#', $requestUri, $matches)) {
+    $controller->update($matches[1]);
+}
+
+// 404
 else {
     http_response_code(404);
     echo json_encode([

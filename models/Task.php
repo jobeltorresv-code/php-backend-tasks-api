@@ -34,4 +34,22 @@ class Task {
 
     return $stmt->fetch();
 }
+public function update($id, $data) {
+    $stmt = $this->db->prepare("
+        UPDATE tasks 
+        SET title = :title,
+            description = :description,
+            completed = :completed
+        WHERE id = :id
+    ");
+
+    $stmt->execute([
+        ':title' => $data['title'],
+        ':description' => $data['description'] ?? null,
+        ':completed' => $data['completed'] ?? 0,
+        ':id' => $id
+    ]);
+
+    return $stmt->rowCount(); //  clave
+}
 }

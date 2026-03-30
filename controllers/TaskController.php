@@ -81,4 +81,48 @@ class TaskController {
         ]);
     }
 }
+public function update($id) {
+    header('Content-Type: application/json');
+
+    $input = json_decode(file_get_contents("php://input"), true);
+
+    //  Validación básica
+    if (!isset($input['title']) || empty(trim($input['title']))) {
+        http_response_code(400);
+        echo json_encode([
+            "error" => "Validation failed",
+            "message" => "Title is required"
+        ]);
+        return;
+    }
+
+    try {
+        $taskModel = new Task();
+
+        //  Verificar si existe
+        $existingTask = $taskModel->getById($id);
+
+        if (!$existingTask) {
+            http_response_code(404);
+            echo json_encode([
+                "error" => "Task not found"
+            ]);
+            return;
+        }
+
+        $updatedRows = $taskModel->update($id, $input);
+
+        echo json_encode([
+            "message" => "Task updated successfully",
+            "updated" => $updatedRows
+        ]);
+
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            "error" => "Failed to update task",
+            "message" => $e->getMessage()
+        ]);
+    }
+}
 }
