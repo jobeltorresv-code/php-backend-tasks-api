@@ -11,3 +11,8 @@ $router->get('/', function () {
         "message" => "API funcionando"
     ]);
 });
+
+$router->post('/tasks', function() {
+    $controller = new TaskController();
+    $controller->store();
+});

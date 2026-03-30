@@ -15,4 +15,16 @@ class Task {
         $stmt->execute();
         return $stmt->fetchAll();
     }
+     public function create($data) {
+        $stmt = $this->db->prepare("
+            INSERT INTO tasks (title, description, completed)
+            VALUES (:title, :description, :completed)
+        ");
+
+        return $stmt->execute([
+            ':title' => $data['title'],
+            ':description' => $data['description'] ?? null,
+            ':completed' => $data['completed'] ?? 0
+        ]);
+    }
 }
