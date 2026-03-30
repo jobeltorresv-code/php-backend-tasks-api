@@ -27,4 +27,11 @@ class Task {
             ':completed' => $data['completed'] ?? 0
         ]);
     }
+
+    public function getById($id) {
+    $stmt = $this->db->prepare("SELECT * FROM tasks WHERE id = :id LIMIT 1");
+    $stmt->execute([':id' => $id]);
+
+    return $stmt->fetch();
+}
 }

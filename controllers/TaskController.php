@@ -56,4 +56,29 @@ class TaskController {
             ]);
         }
     }
+    public function show($id) {
+    header('Content-Type: application/json');
+
+    try {
+        $taskModel = new Task();
+        $task = $taskModel->getById($id);
+
+        if (!$task) {
+            http_response_code(404);
+            echo json_encode([
+                "error" => "Task not found"
+            ]);
+            return;
+        }
+
+        echo json_encode($task);
+
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            "error" => "Failed to fetch task",
+            "message" => $e->getMessage()
+        ]);
+    }
+}
 }
