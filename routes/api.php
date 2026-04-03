@@ -2,10 +2,34 @@
 
 require_once __DIR__ . '/../controllers/TaskController.php';
 
+// Cargar config
+$config = require __DIR__ . '/../config/database.php';
+
+// Crear conexión PDO
+try {
+    $conn = new PDO(
+        "mysql:host={$config['host']};dbname={$config['dbname']};charset=utf8",
+        $config['username'],
+        $config['password']
+    );
+
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode([
+        "error" => "Database connection failed",
+        "message" => $e->getMessage()
+    ]);
+    exit;
+}
+
+// Instanciar controller
+$controller = new TaskController($conn);
+
+// Request
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $requestMethod = $_SERVER['REQUEST_METHOD'];
-
-$controller = new TaskController();
 
 // GET /
 if ($requestMethod === 'GET' && $requestUri === '/') {
@@ -32,6 +56,11 @@ elseif ($requestMethod === 'GET' && preg_match('#^/tasks/(\d+)$#', $requestUri, 
 // PUT /tasks/{id}
 elseif ($requestMethod === 'PUT' && preg_match('#^/tasks/(\d+)$#', $requestUri, $matches)) {
     $controller->update($matches[1]);
+}
+
+// DELETE /tasks/{id}
+elseif ($requestMethod === 'DELETE' && preg_match('#^/tasks/(\d+)$#', $requestUri, $matches)) {
+    $controller->delete($matches[1]);
 }
 
 // 404

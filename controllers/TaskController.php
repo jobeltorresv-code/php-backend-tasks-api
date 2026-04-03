@@ -3,6 +3,12 @@
 require_once __DIR__ . '/../models/Task.php';
 
 class TaskController {
+    private $conn;
+
+public function __construct($db)
+{
+    $this->conn = $db;
+}
 
     public function index() {
         header('Content-Type: application/json');
@@ -122,6 +128,46 @@ public function update($id) {
         echo json_encode([
             "error" => "Failed to update task",
             "message" => $e->getMessage()
+        ]);
+    }
+}
+public function delete($id)
+{
+    // Validar ID
+    if (!is_numeric($id)) {
+        http_response_code(400);
+        echo json_encode([
+            "error" => "Invalid ID"
+        ]);
+        return;
+    }
+
+    // Verificar si existe la tarea
+    $stmt = $this->conn->prepare("SELECT id FROM tasks WHERE id = :id");
+    $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+    $stmt->execute();
+
+    if ($stmt->rowCount() === 0) {
+        http_response_code(404);
+        echo json_encode([
+            "error" => "Task not found"
+        ]);
+        return;
+    }
+
+    // Eliminar tarea
+    $stmt = $this->conn->prepare("DELETE FROM tasks WHERE id = :id");
+    $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+
+    if ($stmt->execute()) {
+        http_response_code(200);
+        echo json_encode([
+            "message" => "Task deleted successfully"
+        ]);
+    } else {
+        http_response_code(500);
+        echo json_encode([
+            "error" => "Failed to delete task"
         ]);
     }
 }
