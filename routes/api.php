@@ -1,6 +1,8 @@
 <?php
 
 require_once __DIR__ . '/../controllers/TaskController.php';
+require_once __DIR__ . '/../services/TaskService.php';
+require_once __DIR__ . '/../models/Task.php';
 
 // Cargar config
 $config = require __DIR__ . '/../config/database.php';
@@ -24,8 +26,11 @@ try {
     exit;
 }
 
-// Instanciar controller
-$controller = new TaskController($conn);
+// 🔥 Dependency Injection manual
+
+$taskModel = new Task($conn);
+$taskService = new TaskService($taskModel);
+$controller = new TaskController($taskService);
 
 // Request
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -58,7 +63,7 @@ elseif ($requestMethod === 'PUT' && preg_match('#^/tasks/(\d+)$#', $requestUri, 
     $controller->update($matches[1]);
 }
 
-/// DELETE /tasks/{id}
+// DELETE /tasks/{id}
 elseif ($requestMethod === 'DELETE' && preg_match('#^/tasks/(\d+)$#', $requestUri, $matches)) {
     $controller->delete($matches[1]);
 }
