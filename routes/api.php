@@ -3,7 +3,8 @@
 require_once __DIR__ . '/../controllers/TaskController.php';
 require_once __DIR__ . '/../services/TaskService.php';
 require_once __DIR__ . '/../models/Task.php';
-
+require_once __DIR__ . '/../core/Response.php';
+require_once __DIR__ . '/../core/Validator.php';
 // Cargar config
 $config = require __DIR__ . '/../config/database.php';
 
