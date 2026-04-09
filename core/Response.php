@@ -4,7 +4,7 @@ class Response
 {
     public static function success($data = null, $message = null, $code = 200)
     {
-        http_response_code($code);
+        http_response_code((int)$code);
 
         echo json_encode([
             "status" => "success",
@@ -15,6 +15,8 @@ class Response
 
     public static function error($message = "Internal Server Error", $code = 500)
     {
+        $code = is_numeric($code) && $code > 0 ? (int)$code : 500;
+
         http_response_code($code);
 
         echo json_encode([

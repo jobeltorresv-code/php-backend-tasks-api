@@ -5,10 +5,16 @@ require_once __DIR__ . '/../services/TaskService.php';
 require_once __DIR__ . '/../models/Task.php';
 require_once __DIR__ . '/../core/Response.php';
 require_once __DIR__ . '/../core/Validator.php';
-// Cargar config
+
+require_once __DIR__ . '/../controllers/AuthController.php';
+require_once __DIR__ . '/../services/AuthService.php';
+require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../core/JWTHandler.php';
+
+// Config DB
 $config = require __DIR__ . '/../config/database.php';
 
-// Crear conexión PDO
+// Conexión
 try {
     $conn = new PDO(
         "mysql:host={$config['host']};dbname={$config['dbname']};charset=utf8",
@@ -19,65 +25,61 @@ try {
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 } catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode([
-        "error" => "Database connection failed",
-        "message" => $e->getMessage()
-    ]);
+    Response::error("Database connection failed", 500);
     exit;
 }
 
-// 🔥 Dependency Injection manual
-
+// 🔥 DI
 $taskModel = new Task($conn);
 $taskService = new TaskService($taskModel);
-$controller = new TaskController($taskService);
+$taskController = new TaskController($taskService);
+
+$authController = new AuthController($conn);
 
 // Request
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
-// GET /
+// ROOT
 if ($requestMethod === 'GET' && $requestUri === '/') {
-    echo json_encode([
-        "message" => "API funcionando"
-    ]);
+    Response::success(["message" => "API funcionando"]);
 }
 
-// GET /tasks
+// AUTH 🔥
+elseif ($requestMethod === 'POST' && $requestUri === '/auth/register') {
+    $authController->register();
+}
+
+elseif ($requestMethod === 'POST' && $requestUri === '/auth/login') {
+    $authController->login();
+}
+
+// TASKS
 elseif ($requestMethod === 'GET' && $requestUri === '/tasks') {
-    $controller->index();
+    $taskController->index();
 }
 
-// POST /tasks
 elseif ($requestMethod === 'POST' && $requestUri === '/tasks') {
-    $controller->store();
+    $taskController->store();
 }
 
-// GET /tasks/{id}
 elseif ($requestMethod === 'GET' && preg_match('#^/tasks/(\d+)$#', $requestUri, $matches)) {
-    $controller->show($matches[1]);
+    $taskController->show($matches[1]);
 }
 
-// PUT /tasks/{id}
 elseif ($requestMethod === 'PUT' && preg_match('#^/tasks/(\d+)$#', $requestUri, $matches)) {
-    $controller->update($matches[1]);
+    $taskController->update($matches[1]);
 }
 
-// DELETE /tasks/{id}
 elseif ($requestMethod === 'DELETE' && preg_match('#^/tasks/(\d+)$#', $requestUri, $matches)) {
-    $controller->delete($matches[1]);
+    $taskController->delete($matches[1]);
 }
 
-// PATCH /tasks/{id}/restore
 elseif ($requestMethod === 'PATCH' && preg_match('#^/tasks/(\d+)/restore$#', $requestUri, $matches)) {
-    $controller->restore($matches[1]);
+    $taskController->restore($matches[1]);
 }
 
 // 404
 else {
-    http_response_code(404);
-    echo json_encode([
-        "error" => "Route not found"
-    ]);
+    Response::error("Route not found", 404);
 }
