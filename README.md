@@ -8,7 +8,9 @@ API REST construida en PHP puro sin frameworks, diseñada para demostrar habilid
 - Router manual
 - API RESTful
 - Respuestas en JSON
-- Estructura profesional
+- CRUD completo de tareas
+- Soft Delete (`deleted_at`)
+- Restauración de tareas eliminadas
 
 ## Estructura del proyecto
 

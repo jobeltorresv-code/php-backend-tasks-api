@@ -114,7 +114,6 @@ class TaskController {
         }
 
         try {
-            // Validar que exista y NO esté eliminada
             $stmt = $this->conn->prepare(
                 "SELECT id FROM tasks WHERE id = :id AND deleted_at IS NULL"
             );
@@ -159,7 +158,6 @@ class TaskController {
         }
 
         try {
-            // Soft delete + validación integrada
             $stmt = $this->conn->prepare(
                 "UPDATE tasks 
                  SET deleted_at = NOW() 
@@ -185,6 +183,66 @@ class TaskController {
             http_response_code(500);
             echo json_encode([
                 "error" => "Failed to delete task",
+                "message" => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function restore($id)
+    {
+        header('Content-Type: application/json');
+
+        if (!is_numeric($id)) {
+            http_response_code(400);
+            echo json_encode([
+                "error" => "Invalid ID"
+            ]);
+            return;
+        }
+
+        try {
+            // 1. Buscar tarea (incluyendo eliminadas)
+            $stmt = $this->conn->prepare(
+                "SELECT * FROM tasks WHERE id = :id LIMIT 1"
+            );
+            $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $task = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // 2. Validar existencia
+            if (!$task) {
+                http_response_code(404);
+                echo json_encode([
+                    "error" => "Task not found"
+                ]);
+                return;
+            }
+
+            // 3. Validar que esté eliminada
+            if ($task['deleted_at'] === null) {
+                http_response_code(400);
+                echo json_encode([
+                    "error" => "Task is not deleted"
+                ]);
+                return;
+            }
+
+            // 4. Restaurar
+            $stmt = $this->conn->prepare(
+                "UPDATE tasks SET deleted_at = NULL WHERE id = :id"
+            );
+            $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+            $stmt->execute();
+
+            echo json_encode([
+                "message" => "Task restored successfully"
+            ]);
+
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                "error" => "Internal Server Error",
                 "message" => $e->getMessage()
             ]);
         }

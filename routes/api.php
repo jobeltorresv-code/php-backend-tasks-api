@@ -58,9 +58,14 @@ elseif ($requestMethod === 'PUT' && preg_match('#^/tasks/(\d+)$#', $requestUri, 
     $controller->update($matches[1]);
 }
 
-// DELETE /tasks/{id}
+/// DELETE /tasks/{id}
 elseif ($requestMethod === 'DELETE' && preg_match('#^/tasks/(\d+)$#', $requestUri, $matches)) {
     $controller->delete($matches[1]);
+}
+
+// PATCH /tasks/{id}/restore
+elseif ($requestMethod === 'PATCH' && preg_match('#^/tasks/(\d+)/restore$#', $requestUri, $matches)) {
+    $controller->restore($matches[1]);
 }
 
 // 404
